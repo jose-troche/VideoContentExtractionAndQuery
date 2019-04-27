@@ -3,7 +3,7 @@ Extracts video content and creates metadata to query that content from a web pag
 
 # Prerequisites
 * ffmpeg (The `install_ffmpeg_for_mac.sh` script is provided to install `ffmpeg` in a Mac, but `ffmpeg` can also be installed in:
-  * Windows: https://ffmpeg.org/download.html#build-linux
+  * Windows: https://ffmpeg.org/download.html#build-windows
   * Linux: https://ffmpeg.org/download.html#build-linux
 
 * Python 3
