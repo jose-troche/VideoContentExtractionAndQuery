@@ -6,4 +6,5 @@
 
 python3 -m venv videoApp
 . videoApp/bin/activate
+pip install --upgrade pip
 pip install boto3
