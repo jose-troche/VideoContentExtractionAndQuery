@@ -47,10 +47,8 @@
       <div class="row justify-content-center">
         <div class="form-group">
           <label for="video-select">Video:</label>
-          <select class="form-control" id="video" onchange="onVideoSelect(this);">
+          <select class="form-control" id="videoSelect" onchange="onVideoSelect(this);">
               <option value="">--Choose video--</option>
-              <option value="GranTorinoIp.mp4">Gran Torino</option>
-              <option value="IronMan.mp4">Iron Man</option>
           </select>
           <input type="text" id="searchBox" style="display:none;" value="">
         </div>
@@ -124,6 +122,22 @@ $(document).ready(function() {
       category: m[2]
     };
   }
+
+  function addVideosToSelect(videos) {
+    const videoSelect = document.getElementById('videoSelect');
+    videos.forEach(video => {
+      const opt = document.createElement('option');
+      opt.appendChild( document.createTextNode(video) );
+      opt.value = video;
+      videoSelect.appendChild(opt);
+    });
+  }
+
+  fetch('frames/videos.json')
+    .then(r => r.json())
+    .then(videos => {
+      addVideosToSelect(videos);
+    });
 
   searchBoxSelect = $('#searchBox').selectize({
     plugins: ['remove_button'],
