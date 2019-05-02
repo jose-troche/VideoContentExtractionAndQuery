@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.png"/>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.css" integrity="sha256-PaAZL3VjvuBsQSngzjA8dTdYa2mU88xmjd0vw8biXfg=" crossorigin="anonymous" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.default.css" integrity="sha256-08CTv29fptANK7CVsvnTZiZZYF9FHc+qtFzn/3cm4S4=" crossorigin="anonymous" />
+
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js" integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
+
+
+    <style>
+      .container-fluid {
+        padding: 0;
+      }
+
+      .navbar-brand {
+        font-size: 1.5em;
+        padding: 0;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div class="container-fluid">
+      <nav class="navbar navbar-dark bg-dark">
+        <div class="navbar-brand"><span style="color: #FF9900">AWS</span> Video Content Extraction and Search</div>
+        <ul class="nav navbar-nav float-right">
+          <li><a class="nav-link" href="#"></a></li>
+        </ul>
+      </nav>
+
+      <div class="row justify-content-center">
+        <div class="form-group">
+          <label for="video-select">Video:</label>
+          <select class="form-control" id="video" onchange="onVideoSelect(this);">
+              <option value="">--Choose video--</option>
+              <option value="GranTorinoIp.mp4">Gran Torino</option>
+              <option value="IronMan.mp4">Iron Man</option>
+          </select>
+          <input type="text" id="searchBox" style="display:none;" value="">
+        </div>
+      </div>
+
+      <div id="frames" class="col-12 col-md-6"></div>
+    </div>
+
+<script>
+var searchBoxSelect;
+var content_map;
+var video;
+
+function generateSearchOption(data){
+  var searchOptions = []
+  Object.keys(data).forEach((term) => {
+    Object.keys(data[term]).forEach((category) => {
+      searchOptions.push({
+        optgroup: category,
+        item: term,
+        id: `${term} (${category})`
+      });
+    });
+  });
+  return searchOptions;
+}
+
+function onLoadedContentData(data){
+  content_map = data;
+
+  searchBoxSelect.load((callback) => {
+    searchBoxSelect.clearOptions();
+    searchBoxSelect.clearCache();
+    searchBoxSelect.clear();
+    searchBoxSelect.setTextboxValue("");
+    searchBoxSelect.enable();
+    callback(generateSearchOption(data));
+  });
+}
+
+function onVideoSelect(selectItem) {
+  if (selectItem.selectedIndex > 0) {
+    var url;
+    video = selectItem.selectedOptions[0].value;
+    url = `/frames/${video}/content_map.json`;
+
+    $.ajax({
+      url,
+      dataType: 'json',
+      success: onLoadedContentData
+    });
+  }
+}
+
+$(document).ready(function() {
+  function addFrames(frames) {
+    var framesDiv = document.getElementById('frames');
+
+    frames.forEach((frame) => {
+      var img = document.createElement("img");
+      img.src = `/frames/${video}/${frame.Source}`;
+      img.width = 600;
+      framesDiv.appendChild(img);
+    });
+  }
+
+  function getTermAndCategory(id) {
+    var m = id.match(/(.*[^ ])[ ]*\((.*)\)/);
+    return {
+      term: m[1],
+      category: m[2]
+    };
+  }
+
+  searchBoxSelect = $('#searchBox').selectize({
+    plugins: ['remove_button'],
+    delimiter: "|",
+    persist: false,
+    valueField: 'id',
+    labelField: 'item',
+    searchField: ['item'],
+    sortField: [{field: 'optgroup'}, {field: 'item'}],
+    optgroups: [
+      {value: 'Label', label: 'Tags'},
+      {value: 'Celebrity', label: 'People'},
+      {value: 'Text', label: 'Text'},
+      {value: 'Audio', label: 'Audio'},
+    ],
+    onChange: (value) => {
+      console.log('onChange', value);
+    },
+    onItemAdd: (value, $item) => {
+      var o = getTermAndCategory(value);
+      addFrames(content_map[o.term][o.category]);
+      //console.log('new frames', content_map[o.term][o.category]);
+    },
+    onItemRemove: (value) => {
+      console.log('onItemRemove', value);
+    }
+  })[0].selectize;
+
+  searchBoxSelect.disable();
+});
+</script>
+  </body>
+</html>
